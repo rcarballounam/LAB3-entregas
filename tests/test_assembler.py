@@ -78,6 +78,26 @@ class AssemblerTests(unittest.TestCase):
                 output,
             )
 
+    def test_project_linker_resolves_unqualified_external_by_unique_symbol(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            library = project / "lib"
+            library.mkdir()
+            source_path = project / "main.asm"
+            source_path.write_text(
+                ".ORIG x3000\n.EXTERNAL MULT_SUMA\n"
+                ".FILL MULT_SUMA\n.END\n",
+                encoding="utf-8",
+            )
+            (library / "multiply.asm").write_text(
+                ".ORIG x4000\nMULT_SUMA RET\n.END\n",
+                encoding="utf-8",
+            )
+
+            output = assemble_project_file(source_path, "hex").split()
+
+            self.assertEqual(output, ["3000", "3001", "C1C0"])
+
     def test_project_linker_resolves_transitive_external(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)

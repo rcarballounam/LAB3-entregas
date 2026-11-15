@@ -519,12 +519,17 @@ class ProjectLinker:
             unit = self._load_unit(path, is_root)
             for reference in unit.external_references:
                 module_name, separator, symbol = reference.partition("-")
-                if not separator or not module_name or not symbol:
-                    raise AssemblerError(
-                        f".EXTERNAL inválido en {unit.path}: {reference!r}; "
-                        "se esperaba MODULO-SIMBOLO."
-                    )
-                module_path = self._find_module(module_name, symbol).resolve()
+                if separator:
+                    if not module_name or not symbol:
+                        raise AssemblerError(
+                            f".EXTERNAL inválido en {unit.path}: {reference!r}; "
+                            "se esperaba MODULO-SIMBOLO."
+                        )
+                    module_path = self._find_module(module_name, symbol)
+                else:
+                    module_path = self._find_exporting_module(reference)
+                    symbol = reference
+                module_path = module_path.resolve()
                 unit.external_targets[reference] = (module_path, symbol)
                 if module_path not in queued_paths:
                     queued_paths.add(module_path)
@@ -610,6 +615,20 @@ class ProjectLinker:
         raise AssemblerError(
             f"El símbolo {symbol} aparece en varios módulos; no se puede resolver "
             f"{module_name}-{symbol} sin una coincidencia de nombre de módulo."
+        )
+
+    def _find_exporting_module(self, symbol: str) -> Path:
+        matches = [path for path in self.module_files if self._defines_label(path, symbol)]
+        if len(matches) == 1:
+            return matches[0]
+        if not matches:
+            raise AssemblerError(
+                f"No se encontró una definición del símbolo externo {symbol} "
+                f"en {self.module_dir}."
+            )
+        raise AssemblerError(
+            f"El símbolo externo {symbol} aparece en varios módulos de {self.module_dir}; "
+            "use .EXTERNAL MODULO-SIMBOLO para identificarlo."
         )
 
     @staticmethod

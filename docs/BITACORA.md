@@ -103,6 +103,7 @@ Se concreta la base funcional de la Fase 2 y queda lista para seguir con la Fase
 ### Enlazado recursivo de `.EXTERNAL`
 - Se implementó `ProjectLinker` para resolver `MODULO-SIMBOLO`, localizar módulos por nombre de archivo o alias `g27_`, cargar dependencias transitivas desde `lib` y reubicar cada unidad después de la anterior.
 - Los externos sin definición ahora producen un error; ya no se codifican silenciosamente como cero.
+- Se extendió la resolución para admitir `.EXTERNAL SIMBOLO` cuando existe una única definición en `lib`, además del formato calificado `MODULO-SIMBOLO`.
 - Se corrigió el reconocimiento de etiquetas cuyo nombre empieza con `R`, necesario para exportar `Reduccion_Argumento`.
 - Se corrigió el direccionamiento para usar direcciones LC-3 por palabra y se ordenó la carga por niveles: dependencias directas antes de las transitivas.
 - Validación unitaria e integración: 15 pruebas pasan, incluidos casos de enlace directo, transitivo, reubicación, orden de dependencias y comparación exacta del benchmark.

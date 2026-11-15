@@ -19,14 +19,14 @@ python src\assembler\assembler.py ruta\al\programa.asm --format dec
 ```
 
 Las referencias `.EXTERNAL MODULO-SIMBOLO` se enlazan recursivamente con los
-archivos de `lib` junto al fuente. Si la biblioteca está en otra ubicación, se
-puede indicar con `--link-dir ruta\a\lib`. El enlazador busca primero un archivo
-con el nombre del módulo, luego el alias `g27_` y finalmente una definición
-única del símbolo exportado. Los módulos externos se reubican en orden por
-niveles de dependencia, con direcciones LC-3 por palabra; sus `.ORIG` se ajustan
-a la base asignada.
-Un externo sin definición produce un error en lugar de generar una dirección
-cero.
+archivos de `lib` junto al fuente. También se admite `.EXTERNAL SIMBOLO` cuando
+el símbolo aparece en un solo módulo. Si la biblioteca está en otra ubicación,
+se puede indicar con `--link-dir ruta\a\lib`. Para la forma calificada, el
+enlazador busca primero un archivo con el nombre del módulo, luego el alias
+`g27_` y finalmente una definición única del símbolo exportado. Los módulos
+externos se reubican en orden por niveles de dependencia, con direcciones LC-3
+por palabra; sus `.ORIG` se ajustan a la base asignada. Un externo sin
+definición única produce un error en lugar de generar una dirección cero.
 
 El nombre de salida conserva el nombre base del assembly y cambia la extensión
 según el formato: `.hex`, `.bin` o `.dec`. Por ejemplo, `programa.asm` genera
