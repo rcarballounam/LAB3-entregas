@@ -17,11 +17,15 @@
 ;     d = +1 si P <= 0 ;  d = -1 si P > 0
 ;=====================================================================
 CORDIC_DIV
-        ADD R6, R6, #-3 ; Apilamos R2, R3 Y R4
-        STR R2, R6, #0
-        STR R3, R6, #1
-        STR R4, R6, #2
 
+;        ADD R6, R6, #-3 ; Apilamos R2, R3 Y R4
+ ;       STR R2, R6, #0
+  ;      STR R3, R6, #1
+   ;     STR R4, R6, #2
+        ST  R2, guardado_r2
+        ST  R3, guardado_r3
+        ST  R4, guardado_r4
+        
         ADD R2, R0, #0  ; R2 = P = y0
         AND R0, R0, #0  ; R0 = Z = 0, el resultado
         ; R3 = -x0
@@ -47,7 +51,7 @@ INI_NEG ADD R2, R2, R3  ; y > 0 : d = -1 -> P = P - x
         ADD R0, R0, #1  ; z = -d = +1
 
         ; Iteracciones 1 a 15
-INI_LOOP ADD R4, R4, #0 ; Inicializamos R4 que es nuestro i del for
+INI_LOOP AND R4, R4, #0 ; Inicializamos R4 que es nuestro i del for
         ADD R4, R4, #15 ; R4 = 15; ya hicimos la iteraciion 0
 LOOP    ADD R2, R2, #0  ; Actualizar los CC con el signo de P
         BRp PPOS
@@ -64,10 +68,21 @@ GOON    ADD R4, R4, #-1
         BRp LOOP
         
         
+        LD  R2, guardado_r2
+        LD  R3, guardado_r3
+        LD  R4, guardado_r4
         
-        LDR R2, R6, #0  ; Desapilamos en el mismo orden
-        LDR R3, R6, #1
-        LDR R4, R6, #2
-        ADD R6, R6, #3  ; Devolvemos el estado original a R6
+        ;LDR R2, R6, #0  ; Desapilamos en el mismo orden
+        ;LDR R3, R6, #1
+        ;LDR R4, R6, #2
+        ;ADD R6, R6, #3
+        ; Devolvemos el estado original a R6
         RET
+        ;=====================================================================
+; Zona de datos
+;=====================================================================
+guardado_r2 .FILL #0
+guardado_r3 .FILL #0
+guardado_r4 .FILL #0
+        
         .END

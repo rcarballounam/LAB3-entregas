@@ -1,8 +1,7 @@
-; Grupo 15: conversion de Q3.12 a Q7.8.
-; Recibe y devuelve el dato en R0. Conserva R1 a R7.
-; Suma la entrada 16 veces y corre el resultado 8 bits a la derecha.
-; Los negativos se aproximan hacia abajo.
-; Guarda los registros en memoria para llamadas secuenciales.
+; Prueba del conversor del grupo 15.
+; Cambiar ENTRADA para probar otro valor.
+; Con ENTRADA = 516, SALIDA debe quedar en 32.
+; Revisar el resultado y los registros antes de HALT.
 
 G15_Q312_Q78
         ST R1, G15_GUARDADO_R1

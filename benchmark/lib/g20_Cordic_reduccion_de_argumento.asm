@@ -2,6 +2,7 @@ Reduccion_Argumento
 ;Guardamos los registros auxiliares
 ST R1, GUARDADO_R1
 ST R2, GUARDADO_R2
+ST R3, GUARDADO_R3
 
 ;Inicializamos la bandera
 AND R3, R3, #0
@@ -30,6 +31,7 @@ FIN
 ;Restauramos los registros auxiliares
 LD R1, GUARDADO_R1
 LD R2, GUARDADO_R2
+LD R3, GUARDADO_R3
 
 RET ;Regresa al programa principal (a la instruccion despues del JSR)
 
@@ -42,5 +44,6 @@ NPI_DOS .FILL #-6434
 
 GUARDADO_R1 .FILL #0
 GUARDADO_R2 .FILL #0
+GUARDADO_R3 .FILL #0
 
 .END

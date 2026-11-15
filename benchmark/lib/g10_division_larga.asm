@@ -17,7 +17,8 @@
 ;             la plantilla de subrutinas). R6 y R7 no se tocan (no usa la pila ni llama
 ;             a nadie). Como guarda en memoria, la rutina no es reentrante.
 ;   Ejemplo:  Q3.12 / Q7.8 -> Q5.10  =>  s = 10 + 8 - 12 = 6
-;   Formato de salida: bits enteros = ceil(log2(max|a| / divisor_minimo));
+;   Formato de salida: bits enteros = ceil(log2(max|a| / divisor_minimo)); ver
+;   formato_resultado() en division_larga.py.
 ;   Iteraciones del lazo principal: 16 (una por bit del cociente).
 ;
 ; Registros internos:
@@ -25,7 +26,7 @@
 ;   R2 = contador                                R3 = -|b|
 ;   R4 = temporal                                R5 = 1 si el cociente es negativo
 ;
-; DIV_LONG
+; DIV_LONG  (segunda entrada del modulo, para el menu del Grupo 27)
 ;   Entrada:  R0 = a (Q7.8), R1 = b (Q7.8)
 ;   Salida:   R0 = a/b en Q7.8 (llama a DIVIDIR con s = 8 + 8 - 8 = 8)
 ;   Preserva: R1 a R7 (R2 y R7 en GUARDADO_DL_R2 y GUARDADO_DL_R7; R1, R3, R4 y R5

@@ -1,40 +1,263 @@
         .ORIG x3000
 
-        BR INICIO
+; ==========================================================
+; PUNTEROS A DATOS
+; ==========================================================
 
-; PUNTEROS A DATOS ALEJADOS
+PUNTERO_RESULTADO_SENO       .FILL RESULTADO_SENO
+PUNTERO_RESULTADO_COSENO     .FILL RESULTADO_COSENO
 
 PUNTERO_PI       .FILL PI_SOBRE_2
 PUNTERO_ANGULO   .FILL ANGULO_PRUEBA
 
 ; ==========================================================
-; ENTRADAS:
-; R1 = Valor absoluto del seno en Q1.14
-; R2 = Valor absoluto del coseno en Q1.14
+; SUBRUTINA: GUARDAR_ANGULO
 ;
-; SIGNOS EN MEMORIA:
-; SIGNO_SENO   = +1, -1 o 0
-; SIGNO_COSENO = +1, -1 o 0
+; ENTRADA:
+; R0 = Angulo Q3.12
 ;
-; SALIDAS:
-; R1 = Seno final en Q1.14
-; R2 = Coseno final en Q1.14
+; OBJETIVO:
+; Guardar el angulo recibido en ANGULO_PRUEBA.
 ;
-; REGISTROS UTILIZADOS:
-; R1 = Resultado del seno
-; R2 = Resultado del coseno
-; R3 = Signo temporal
-; R5 = Puntero a memoria
-;
-; IMPORTANTE:
-; Para obtener un numero negativo utilizamos complemento
-; a dos: NOT del valor seguido de ADD #1.
-;
-; Si el signo es cero, el resultado se fuerza a cero.
+; PRESERVA:
+; R1-R5 y R6.
+; R7 no necesita guardarse porque esta rutina
+; no realiza llamadas anidadas.
 ; ==========================================================
 
+GUARDAR_ANGULO
 
-INICIO
+        ; Guardar registros utilizados.
+        ADD R6, R6, #-1
+        STR R1, R6, #0
+
+        ADD R6, R6, #-1
+        STR R2, R6, #0
+
+        ADD R6, R6, #-1
+        STR R3, R6, #0
+
+        ADD R6, R6, #-1
+        STR R4, R6, #0
+
+        ADD R6, R6, #-1
+        STR R5, R6, #0
+
+        ; Obtener la direccion del angulo.
+        LEA R5, PUNTERO_ANGULO
+        LDR R5, R5, #0
+
+        ; Guardar el valor recibido en R0.
+        STR R0, R5, #0
+
+        ; Restaurar registros.
+        LDR R5, R6, #0
+        ADD R6, R6, #1
+
+        LDR R4, R6, #0
+        ADD R6, R6, #1
+
+        LDR R3, R6, #0
+        ADD R6, R6, #1
+
+        LDR R2, R6, #0
+        ADD R6, R6, #1
+
+        LDR R1, R6, #0
+        ADD R6, R6, #1
+
+        RET
+
+; ==========================================================
+; INTERFAZ PUBLICA: SENO_TABLA
+;
+; ENTRADA:
+; R0 = Angulo en Q3.12.
+;
+; SALIDA:
+; R0 = Seno en Q1.14.
+;
+; PRESERVA:
+; R1-R5, R6 y R7.
+; ==========================================================
+
+SENO_TABLA
+
+        ; Guardar registros del programa llamador.
+
+        ADD R6, R6, #-1
+        STR R1, R6, #0
+
+        ADD R6, R6, #-1
+        STR R2, R6, #0
+
+        ADD R6, R6, #-1
+        STR R3, R6, #0
+
+        ADD R6, R6, #-1
+        STR R4, R6, #0
+
+        ADD R6, R6, #-1
+        STR R5, R6, #0
+
+        ADD R6, R6, #-1
+        STR R7, R6, #0
+
+        ; Guardar el angulo recibido en R0.
+
+        LEA R4, PUNTERO_ANGULO
+        LDR R4, R4, #0
+        STR R0, R4, #0
+
+        ; Ejecutar el algoritmo completo.
+
+        JSR CALCULAR_AMBOS
+
+        ; Recuperar el resultado del seno.
+
+        LEA R4, PUNTERO_RESULTADO_SENO
+        LDR R4, R4, #0
+        LDR R0, R4, #0
+
+        ; Restaurar registros del llamador.
+
+        LDR R7, R6, #0
+        ADD R6, R6, #1
+
+        LDR R5, R6, #0
+        ADD R6, R6, #1
+
+        LDR R4, R6, #0
+        ADD R6, R6, #1
+
+        LDR R3, R6, #0
+        ADD R6, R6, #1
+
+        LDR R2, R6, #0
+        ADD R6, R6, #1
+
+        LDR R1, R6, #0
+        ADD R6, R6, #1
+
+        RET
+
+
+; ==========================================================
+; INTERFAZ PUBLICA: COSENO_TABLA
+;
+; ENTRADA:
+; R0 = Angulo en Q3.12.
+;
+; SALIDA:
+; R0 = Coseno en Q1.14.
+;
+; PRESERVA:
+; R1-R5, R6 y R7.
+; ==========================================================
+
+COSENO_TABLA
+
+        ; Guardar registros del programa llamador.
+
+        ADD R6, R6, #-1
+        STR R1, R6, #0
+
+        ADD R6, R6, #-1
+        STR R2, R6, #0
+
+        ADD R6, R6, #-1
+        STR R3, R6, #0
+
+        ADD R6, R6, #-1
+        STR R4, R6, #0
+
+        ADD R6, R6, #-1
+        STR R5, R6, #0
+
+        ADD R6, R6, #-1
+        STR R7, R6, #0
+
+        ; Guardar el angulo recibido en R0.
+
+        LEA R4, PUNTERO_ANGULO
+        LDR R4, R4, #0
+        STR R0, R4, #0
+
+        ; Ejecutar el algoritmo completo.
+
+        JSR CALCULAR_AMBOS
+
+        ; Recuperar el resultado del coseno.
+
+        LEA R4, PUNTERO_RESULTADO_COSENO
+        LDR R4, R4, #0
+        LDR R0, R4, #0
+
+        ; Restaurar registros del llamador.
+
+        LDR R7, R6, #0
+        ADD R6, R6, #1
+
+        LDR R5, R6, #0
+        ADD R6, R6, #1
+
+        LDR R4, R6, #0
+        ADD R6, R6, #1
+
+        LDR R3, R6, #0
+        ADD R6, R6, #1
+
+        LDR R2, R6, #0
+        ADD R6, R6, #1
+
+        LDR R1, R6, #0
+        ADD R6, R6, #1
+
+        RET
+
+
+; ==========================================================
+; SUBRUTINA PRINCIPAL: CALCULAR_AMBOS
+;
+; ENTRADA:
+; ANGULO_PRUEBA = Angulo Q3.12 recibido desde R0.
+;
+; SALIDAS EN MEMORIA:
+; RESULTADO_SENO
+; RESULTADO_COSENO
+;
+; PRESERVA:
+; R1-R5 y R7.
+; R6 recupera su valor original.
+;
+; R0 se utiliza como registro de trabajo.
+; ==========================================================
+
+CALCULAR_AMBOS
+
+        ; Guardar el contexto del programa llamador.
+
+        ADD R6, R6, #-1
+        STR R1, R6, #0
+
+        ADD R6, R6, #-1
+        STR R2, R6, #0
+
+        ADD R6, R6, #-1
+        STR R3, R6, #0
+
+        ADD R6, R6, #-1
+        STR R4, R6, #0
+
+        ADD R6, R6, #-1
+        STR R5, R6, #0
+
+        ; Guardar R7 porque el algoritmo utiliza JSR.
+
+        ADD R6, R6, #-1
+        STR R7, R6, #0
+
+        ; Comienzo del algoritmo original.
 
         AND R1, R1, #0
 
@@ -447,32 +670,26 @@ CALCULO_SENO
 ; de la palabra baja.
 ; ----------------------------------------------------------
 
-        AND R4, R4, #0
+AND R4,R4,#0
 
-; Comprobar el bit 15 de la palabra baja.
-
-        ADD R3, R1, R1
-        BRzp SENO_BIT_15_CERO
-        ADD R4, R4, #2
+; Comprobar bit 15 de R1
+ADD R3,R1,#0
+BRzp SENO_BIT_15_CERO
+ADD R4,R4,#2
 
 SENO_BIT_15_CERO
 
-; Comprobar el bit 14 de la palabra baja.
-
-        ADD R3, R3, R3
-        BRzp SENO_BIT_14_CERO
-        ADD R4, R4, #1
+; Comprobar bit 14 de R1
+ADD R3,R1,R1
+BRzp SENO_BIT_14_CERO
+ADD R4,R4,#1
 
 SENO_BIT_14_CERO
 
-; Multiplicar la palabra alta por cuatro.
-
-        ADD R2, R2, R2
-        ADD R2, R2, R2
-
-; Incorporar los dos bits extraidos.
-
-        ADD R2, R2, R4
+; Incorporar los dos bits al resultado Q8.8
+ADD R2,R2,R2
+ADD R2,R2,R2
+ADD R2,R2,R4
 
 ; ----------------------------------------------------------
 ; ALMACENAMIENTO DE LOS GRADOS Q8.8 DEL SENO
@@ -482,19 +699,13 @@ SENO_BIT_14_CERO
         STR R2, R5, #0
 
 ; ----------------------------------------------------------
-; REDONDEO AL ENTERO MAS CERCANO (+128)
-; ----------------------------------------------------------
-
-        LEA R5, CONSTANTE_128
-        LDR R3, R5, #0
-        ADD R2, R2, R3
-
-; ----------------------------------------------------------
-; OBTENCION DEL INDICE DEL SENO MEDIANTE RESTAS
-; SUCESIVAS (/256)
+; SEPARACION DEL INDICE Y LA FRACCION DEL SENO
 ;
-; R5 contiene -256.
-; R4 acumula la cantidad de restas exitosas.
+; R2 contiene los grados en Q8.8.
+; Cada resta de 256 obtiene un grado entero.
+; Al finalizar:
+; R4 = indice inferior (parte entera).
+; R2 = fraccion (0..255).
 ; ----------------------------------------------------------
 
         LEA R5, CONSTANTE_MENOS_256
@@ -514,16 +725,13 @@ OBTENER_INDICE_SENO
 
 FIN_INDICE_SENO
 
-; ----------------------------------------------------------
-; ALMACENAMIENTO DEL INDICE DEL SENO
-;
-; R4 contiene el indice entero de la tabla.
-; Guardamos el resultado para conservarlo durante
-; el calculo posterior del coseno.
-; ----------------------------------------------------------
+; Guardar por separado el indice y la fraccion.
 
         LEA R5, INDICE_SENO
         STR R4, R5, #0
+
+        LEA R5, FRACCION_SENO
+        STR R2, R5, #0
 
 
 ; ==========================================================
@@ -645,32 +853,26 @@ FIN_INDICE_SENO
 ; CONVERSION DEL PRODUCTO A GRADOS Q8.8
 ; ----------------------------------------------------------
 
-        AND R4, R4, #0
+AND R4,R4,#0
 
-; Comprobar el bit 15 de la palabra baja.
-
-        ADD R3, R1, R1
-        BRzp COSENO_BIT_15_CERO
-        ADD R4, R4, #2
+; Comprobar bit 15 de R1
+ADD R3,R1,#0
+BRzp COSENO_BIT_15_CERO
+ADD R4,R4,#2
 
 COSENO_BIT_15_CERO
 
-; Comprobar el bit 14 de la palabra baja.
-
-        ADD R3, R3, R3
-        BRzp COSENO_BIT_14_CERO
-        ADD R4, R4, #1
+; Comprobar bit 14 de R1
+ADD R3,R1,R1
+BRzp COSENO_BIT_14_CERO
+ADD R4,R4,#1
 
 COSENO_BIT_14_CERO
 
-; Multiplicar la palabra alta por cuatro.
-
-        ADD R2, R2, R2
-        ADD R2, R2, R2
-
-; Incorporar los dos bits extraidos.
-
-        ADD R2, R2, R4
+; Incorporar los dos bits al resultado Q8.8
+ADD R2,R2,R2
+ADD R2,R2,R2
+ADD R2,R2,R4
 
 ; ----------------------------------------------------------
 ; ALMACENAMIENTO DE LOS GRADOS Q8.8 DEL COSENO
@@ -680,16 +882,12 @@ COSENO_BIT_14_CERO
         STR R2, R5, #0
 
 ; ----------------------------------------------------------
-; REDONDEO AL ENTERO MAS CERCANO (+128)
-; ----------------------------------------------------------
-
-        LEA R5, CONSTANTE_128
-        LDR R3, R5, #0
-        ADD R2, R2, R3
-
-; ----------------------------------------------------------
-; OBTENCION DEL INDICE DEL COSENO MEDIANTE RESTAS
-; SUCESIVAS (/256)
+; SEPARACION DEL INDICE Y LA FRACCION DEL COSENO
+;
+; R2 contiene los grados en Q8.8.
+; Al finalizar:
+; R4 = indice inferior (parte entera).
+; R2 = fraccion (0..255).
 ; ----------------------------------------------------------
 
         LEA R5, CONSTANTE_MENOS_256
@@ -709,65 +907,85 @@ OBTENER_INDICE_COSENO
 
 FIN_INDICE_COSENO
 
-; ----------------------------------------------------------
-; ALMACENAMIENTO DEL INDICE DEL COSENO
-; ----------------------------------------------------------
+; Guardar por separado el indice y la fraccion.
 
         LEA R5, INDICE_COSENO
         STR R4, R5, #0
 
-
-; ----------------------------------------------------------
-; CARGA DE LA DIRECCION BASE DE LA TABLA
-; ----------------------------------------------------------
-
-        LEA R3, TABLA_SENO
+        LEA R5, FRACCION_COSENO
+        STR R2, R5, #0
 
 
 ; ==========================================================
-; BUSQUEDA DEL VALOR DEL SENO
+; INTERPOLACION DEL SENO
 ; ==========================================================
 
-; Recuperar el indice del seno desde memoria.
+; Preparar los datos de entrada de la rutina comun.
 
         LEA R5, INDICE_SENO
-        LDR R4, R5, #0
+        LDR R0, R5, #0
+        LEA R5, INDICE_INTERPOLACION
+        STR R0, R5, #0
 
-; Calcular la direccion dinamica del elemento.
+        LEA R5, FRACCION_SENO
+        LDR R0, R5, #0
+        LEA R5, FRACCION_INTERPOLACION
+        STR R0, R5, #0
 
-        ADD R5, R3, R4
+        JSR INTERPOLAR_TABLA
 
-; Recuperar el valor correspondiente de la tabla.
+; Guardar el resultado interpolado del seno.
 
+        LEA R5, RESULTADO_INTERPOLADO
         LDR R1, R5, #0
-
-; Guardar el resultado del seno en memoria.
-
         LEA R5, RESULTADO_SENO
         STR R1, R5, #0
 
 
 ; ==========================================================
-; BUSQUEDA DEL VALOR DEL COSENO
+; INTERPOLACION DEL COSENO
 ; ==========================================================
 
-; Recuperar el indice del coseno desde memoria.
-
         LEA R5, INDICE_COSENO
-        LDR R4, R5, #0
+        LDR R0, R5, #0
+        LEA R5, INDICE_INTERPOLACION
+        STR R0, R5, #0
 
-; Calcular la direccion dinamica del elemento.
+        LEA R5, FRACCION_COSENO
+        LDR R0, R5, #0
+        LEA R5, FRACCION_INTERPOLACION
+        STR R0, R5, #0
 
-        ADD R5, R3, R4
+        JSR INTERPOLAR_TABLA
 
-; Recuperar el valor correspondiente de la tabla.
+; Guardar el resultado interpolado del coseno.
 
+        LEA R5, RESULTADO_INTERPOLADO
         LDR R2, R5, #0
-
-; Guardar el resultado del coseno en memoria.
-
         LEA R5, RESULTADO_COSENO
         STR R2, R5, #0
+
+
+; ----------------------------------------------------------
+; RECUPERAR AMBOS RESULTADOS INTERPOLADOS
+; ----------------------------------------------------------
+;
+; La interpolacion del coseno utiliza R1 y R2 como
+; registros de trabajo y puede sobrescribir el seno.
+;
+; Por eso recuperamos ambos resultados desde memoria
+; antes de aplicar los signos de cada cuadrante.
+;
+; R1 = Resultado interpolado del seno.
+; R2 = Resultado interpolado del coseno.
+; ----------------------------------------------------------
+
+        LEA R5, RESULTADO_SENO
+        LDR R1, R5, #0
+
+        LEA R5, RESULTADO_COSENO
+        LDR R2, R5, #0
+
 
 ; ----------------------------------------------------------
 ; 1. APLICAR SIGNO AL SENO
@@ -884,11 +1102,32 @@ COSENO_FINALIZADO
         STR R2, R5, #0
 
 
-; ----------------------------------------------------------
-; FINALIZACION DE LA PRUEBA 8D
-; ----------------------------------------------------------
+; ==========================================================
+; FINALIZACION DE CALCULAR_AMBOS
+;
+; Restaurar el contexto del programa llamador.
+; ==========================================================
 
-        HALT
+        ; Restaurar R7 primero.
+        LDR R7, R6, #0
+        ADD R6, R6, #1
+
+        LDR R5, R6, #0
+        ADD R6, R6, #1
+
+        LDR R4, R6, #0
+        ADD R6, R6, #1
+
+        LDR R3, R6, #0
+        ADD R6, R6, #1
+
+        LDR R2, R6, #0
+        ADD R6, R6, #1
+
+        LDR R1, R6, #0
+        ADD R6, R6, #1
+
+        RET
 
 
 ; ==========================================================
@@ -965,7 +1204,7 @@ FIN_SUMAR_REFERENCIA
 ; ==========================================================
 
 ; Ángulo original de entrada en Q3.12.
-ANGULO_PRUEBA               .FILL #25736
+ANGULO_PRUEBA .BLKW #1
 
 ; Constantes para determinar cuadrantes.
 PI_SOBRE_2                  .FILL #6434
@@ -987,7 +1226,9 @@ SIGNO_COSENO                .BLKW #1
 ; ==========================================================
 
 CONSTANTE_128                .FILL #128
+CONSTANTE_MENOS_128          .FILL #-128
 CONSTANTE_MENOS_256          .FILL #-256
+MASCARA_00FF                 .FILL x00FF
 
 
 ; ==========================================================
@@ -999,6 +1240,7 @@ PRODUCTO_SENO_ALTO           .BLKW #1
 
 GRADOS_SENO_Q8_8             .BLKW #1
 INDICE_SENO                  .BLKW #1
+FRACCION_SENO                .BLKW #1
 
 
 ; ==========================================================
@@ -1010,6 +1252,7 @@ PRODUCTO_COSENO_ALTO         .BLKW #1
 
 GRADOS_COSENO_Q8_8           .BLKW #1
 INDICE_COSENO                .BLKW #1
+FRACCION_COSENO              .BLKW #1
 
 ; ==========================================================
 ; RESULTADOS DE LA CONSULTA A LA TABLA
@@ -1017,6 +1260,18 @@ INDICE_COSENO                .BLKW #1
 
 RESULTADO_SENO       .BLKW #1
 RESULTADO_COSENO     .BLKW #1
+
+; Datos de trabajo de la interpolacion.
+INDICE_INTERPOLACION         .BLKW #1
+FRACCION_INTERPOLACION       .BLKW #1
+VALOR_INFERIOR               .BLKW #1
+DIFERENCIA_ABSOLUTA          .BLKW #1
+SIGNO_INCREMENTO             .BLKW #1
+PRODUCTO_INTERPOLACION_BAJO  .BLKW #1
+PRODUCTO_INTERPOLACION_ALTO  .BLKW #1
+COCIENTE_INTERPOLACION       .BLKW #1
+RESTO_INTERPOLACION          .BLKW #1
+RESULTADO_INTERPOLADO        .BLKW #1
 
 ; ==========================================================
 ; TABLA DE SENO EN FORMATO Q1.14
@@ -1116,5 +1371,278 @@ TABLA_SENO
         .FILL #16382
         .FILL #16384
 
+
+; ==========================================================
+; SUBRUTINA: INTERPOLAR_TABLA
+;
+; OBJETIVO:
+; Calcular la interpolacion lineal entre dos valores
+; consecutivos de TABLA_SENO.
+;
+; ENTRADAS EN MEMORIA:
+; INDICE_INTERPOLACION   = indice inferior (0..90).
+; FRACCION_INTERPOLACION = fraccion Q0.8 (0..255).
+;
+; SALIDA EN MEMORIA:
+; RESULTADO_INTERPOLADO = valor interpolado Q1.14.
+;
+; El calculo se realiza en el primer cuadrante. La rutina
+; principal aplica posteriormente el signo del cuadrante.
+; Esta rutina no realiza llamadas anidadas.
+; ==========================================================
+
+INTERPOLAR_TABLA
+
+; ----------------------------------------------------------
+; 1. OBTENER EL VALOR INFERIOR DE LA TABLA
+; ----------------------------------------------------------
+
+        LEA R5, INDICE_INTERPOLACION
+        LDR R4, R5, #0
+
+        LEA R3, TABLA_SENO
+        ADD R5, R3, R4
+        LDR R1, R5, #0
+
+        LEA R5, VALOR_INFERIOR
+        STR R1, R5, #0
+
+; En el indice 90 no existe un siguiente elemento.
+; La fraccion debe ser cero en este extremo: se devuelve
+; directamente el ultimo valor de la tabla.
+
+        ADD R4, R4, #-15
+        ADD R4, R4, #-15
+        ADD R4, R4, #-15
+        ADD R4, R4, #-15
+        ADD R4, R4, #-15
+        ADD R4, R4, #-15
+        BRnp CONTINUAR_INTERPOLACION
+
+; Caso indice 90: devolver directamente TABLA_SENO[90].
+
+        LEA R5, RESULTADO_INTERPOLADO
+        STR R1, R5, #0
+        RET
+
+CONTINUAR_INTERPOLACION
+
+; ----------------------------------------------------------
+; 2. OBTENER EL VALOR SUPERIOR Y CALCULAR LA DIFERENCIA
+; ----------------------------------------------------------
+
+        LEA R5, INDICE_INTERPOLACION
+        LDR R4, R5, #0
+        ADD R4, R4, #1
+        ADD R5, R3, R4
+        LDR R2, R5, #0
+
+; Diferencia = valor superior - valor inferior.
+
+        NOT R1, R1
+        ADD R1, R1, #1
+        ADD R2, R2, R1
+
+; Registrar el signo de la diferencia y obtener su magnitud.
+
+        AND R0, R0, #0
+        ADD R2, R2, #0
+        BRzp DIFERENCIA_POSITIVA
+
+        ADD R0, R0, #1
+        NOT R2, R2
+        ADD R2, R2, #1
+
+DIFERENCIA_POSITIVA
+        LEA R5, SIGNO_INCREMENTO
+        STR R0, R5, #0
+
+        LEA R5, DIFERENCIA_ABSOLUTA
+        STR R2, R5, #0
+
+; ----------------------------------------------------------
+; 3. MULTIPLICAR LA MAGNITUD POR LA FRACCION (8 BITS)
+;
+; Se utiliza el esquema binario de desplazamiento y suma.
+; R0 = fraccion desplazada 8 posiciones a la izquierda.
+; R3 = magnitud de la diferencia.
+; R2:R1 = producto unsigned de 32 bits.
+; ----------------------------------------------------------
+
+        LEA R5, FRACCION_INTERPOLACION
+        LDR R0, R5, #0
+
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+        ADD R0, R0, R0
+
+        LEA R5, DIFERENCIA_ABSOLUTA
+        LDR R3, R5, #0
+
+        AND R1, R1, #0
+        AND R2, R2, #0
+        AND R4, R4, #0
+        ADD R4, R4, #8
+
+BUCLE_MULTIPLICACION_INTERPOLACION
+
+; Desplazar el acumulador de 32 bits una posicion.
+
+        ADD R5, R1, #0
+        BRn DOBLAR_PRODUCTO_CON_ACARREO
+
+        ADD R1, R1, R1
+        ADD R2, R2, R2
+        BRnzp COMPROBAR_BIT_FRACCION
+
+DOBLAR_PRODUCTO_CON_ACARREO
+        ADD R1, R1, R1
+        ADD R2, R2, R2
+        ADD R2, R2, #1
+
+COMPROBAR_BIT_FRACCION
+
+; El bit mas significativo de R0 representa el bit actual.
+
+        ADD R5, R0, #0
+        BRzp FIN_SUMAR_MAGNITUD
+
+; Sumar la magnitud al acumulador de 32 bits.
+
+        ADD R5, R1, #0
+        BRn SUMAR_MAGNITUD_CON_ACARREO
+
+        ADD R1, R1, R3
+        BRnzp FIN_SUMAR_MAGNITUD
+
+SUMAR_MAGNITUD_CON_ACARREO
+        ADD R1, R1, R3
+        BRn FIN_SUMAR_MAGNITUD
+        ADD R2, R2, #1
+
+FIN_SUMAR_MAGNITUD
+        ADD R0, R0, R0
+        ADD R4, R4, #-1
+        BRp BUCLE_MULTIPLICACION_INTERPOLACION
+
+; Guardar el producto de 32 bits.
+
+        LEA R5, PRODUCTO_INTERPOLACION_BAJO
+        STR R1, R5, #0
+        LEA R5, PRODUCTO_INTERPOLACION_ALTO
+        STR R2, R5, #0
+
+; ----------------------------------------------------------
+; 4. DIVIDIR EL PRODUCTO POR 256
+;
+; Se obtiene el cociente truncado hacia cero y el resto
+; como magnitud sin signo. Como el producto se calculo
+; usando magnitudes, el signo se aplica al cociente luego.
+; ----------------------------------------------------------
+
+; El byte alto de la palabra baja se extrae desplazando
+; ocho veces y acumulando los bits que salen por el bit 15.
+
+        ADD R3, R1, #0
+        AND R4, R4, #0
+        AND R5, R5, #0
+        ADD R5, R5, #8
+
+EXTRAER_COCIENTE_BAJO
+        ADD R0, R3, #0
+        BRzp BIT_COCIENTE_CERO
+
+        ADD R4, R4, R4
+        ADD R4, R4, #1
+        BRnzp CONTINUAR_EXTRAER_COCIENTE
+
+BIT_COCIENTE_CERO
+        ADD R4, R4, R4
+
+CONTINUAR_EXTRAER_COCIENTE
+        ADD R3, R3, R3
+        ADD R5, R5, #-1
+        BRp EXTRAER_COCIENTE_BAJO
+
+; Cociente = (palabra alta * 256) + byte extraido.
+
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R2
+        ADD R2, R2, R4
+
+; R1 conserva el producto bajo original. Obtener el resto.
+
+        LEA R5, MASCARA_00FF
+        LDR R5, R5, #0
+        AND R1, R1, R5
+
+        LEA R5, RESTO_INTERPOLACION
+        STR R1, R5, #0
+
+; Aplicar al cociente el signo de la diferencia.
+
+        LEA R5, SIGNO_INCREMENTO
+        LDR R0, R5, #0
+        BRz COCIENTE_POSITIVO
+
+        NOT R2, R2
+        ADD R2, R2, #1
+
+COCIENTE_POSITIVO
+        LEA R5, COCIENTE_INTERPOLACION
+        STR R2, R5, #0
+
+; ----------------------------------------------------------
+; 5. SUMAR EL COCIENTE AL VALOR INFERIOR Y REDONDEAR
+;
+; Regla equivalente a (int16_t)(resultado + 0.5):
+; incremento positivo: redondear si resto >= 128.
+; incremento negativo: redondear si resto > 128.
+; ----------------------------------------------------------
+
+        LEA R5, VALOR_INFERIOR
+        LDR R3, R5, #0
+        ADD R3, R3, R2
+
+        LEA R5, RESTO_INTERPOLACION
+        LDR R1, R5, #0
+
+        LEA R5, SIGNO_INCREMENTO
+        LDR R0, R5, #0
+        BRp REDONDEO_INCREMENTO_NEGATIVO
+
+; Incremento positivo: resto >= 128.
+
+        LEA R5, CONSTANTE_MENOS_128
+        LDR R5, R5, #0
+        ADD R1, R1, R5
+        BRn GUARDAR_INTERPOLACION
+        ADD R3, R3, #1
+        BRnzp GUARDAR_INTERPOLACION
+
+REDONDEO_INCREMENTO_NEGATIVO
+; Incremento negativo: resto > 128.
+
+        LEA R5, CONSTANTE_MENOS_128
+        LDR R5, R5, #0
+        ADD R1, R1, R5
+        BRnz GUARDAR_INTERPOLACION
+        ADD R3, R3, #-1
+
+GUARDAR_INTERPOLACION
+        LEA R5, RESULTADO_INTERPOLADO
+        STR R3, R5, #0
+        RET
 
         .END
