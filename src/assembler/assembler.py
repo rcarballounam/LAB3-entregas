@@ -14,6 +14,10 @@ class AssemblerError(ValueError):
     pass
 
 
+def _object_bytes(words: Sequence[int]) -> bytes:
+    return b"".join((word & 0xFFFF).to_bytes(2, byteorder="big") for word in words)
+
+
 @dataclass
 class ProgramEntry:
     address: int
@@ -125,11 +129,13 @@ class Assembler:
         self._pass2()
         return [entry.value for entry in self.entries if entry.value is not None]
 
-    def assemble_string(self, source: str, output_format: str = "hex") -> str:
+    def assemble_string(self, source: str, output_format: str = "hex") -> str | bytes:
         words = self.assemble(source)
         if self.origin is None:
             raise AssemblerError("Falta .ORIG en el archivo.")
         words.insert(0, self.origin)
+        if output_format.lower() == "obj":
+            return _object_bytes(words)
         if output_format.lower() == "bin":
             return " ".join(f"{w & 0xFFFF:016b}" for w in words)
         if output_format.lower() == "dec":
@@ -138,7 +144,7 @@ class Assembler:
             return " ".join(f"{w & 0xFFFF:04X}" for w in words)
         raise AssemblerError(f"Formato de salida inválido: {output_format}")
 
-    def assemble_file(self, path: str | Path, output_format: str = "hex") -> str:
+    def assemble_file(self, path: str | Path, output_format: str = "hex") -> str | bytes:
         text = Path(path).read_text(encoding="utf-8")
         return self.assemble_string(text, output_format)
 
@@ -492,11 +498,11 @@ class Assembler:
         return self.pc
 
 
-def assemble_source(source: str, output_format: str = "hex") -> str:
+def assemble_source(source: str, output_format: str = "hex") -> str | bytes:
     return Assembler().assemble_string(source, output_format)
 
 
-def assemble_file(path: str | Path, output_format: str = "hex") -> str:
+def assemble_file(path: str | Path, output_format: str = "hex") -> str | bytes:
     return Assembler().assemble_file(path, output_format)
 
 
@@ -510,7 +516,7 @@ class ProjectLinker:
         self.units: Dict[Path, LinkedSource] = {}
         self.unit_order: List[LinkedSource] = []
 
-    def assemble_file(self, source_path: str | Path, output_format: str = "hex") -> str:
+    def assemble_file(self, source_path: str | Path, output_format: str = "hex") -> str | bytes:
         root_path = Path(source_path).resolve()
         pending = deque([(root_path, True)])
         queued_paths = {root_path}
@@ -559,6 +565,8 @@ class ProjectLinker:
             words.extend(assembler.assemble(unit.source))
 
         output_words = [root.base, *words]
+        if output_format.lower() == "obj":
+            return _object_bytes(output_words)
         if output_format.lower() == "hex":
             return " ".join(f"{word & 0xFFFF:04X}" for word in output_words)
         if output_format.lower() == "bin":
@@ -665,7 +673,7 @@ def assemble_project_file(
     path: str | Path,
     output_format: str = "hex",
     module_dir: str | Path | None = None,
-) -> str:
+) -> str | bytes:
     source_path = Path(path)
     if module_dir is None:
         module_dir = source_path.parent / "lib"
@@ -675,11 +683,16 @@ def assemble_project_file(
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Ensamblador simple para LC-3 / ISA del laboratorio")
     parser.add_argument("source", type=str, help="Archivo assembly a compilar")
-    parser.add_argument("--format", choices=["hex", "bin", "dec"], default="hex", help="Formato de salida")
+    parser.add_argument(
+        "--format",
+        choices=["hex", "bin", "dec", "obj"],
+        default="hex",
+        help="Formato de salida",
+    )
     parser.add_argument("--link-dir", type=str, help="Carpeta con módulos .asm (por defecto, lib junto al fuente)")
     args = parser.parse_args(argv)
     source_path = Path(args.source)
-    output_suffix = {"hex": ".hex", "bin": ".bin", "dec": ".dec"}[args.format]
+    output_suffix = {"hex": ".hex", "bin": ".bin", "dec": ".dec", "obj": ".obj"}[args.format]
     output_path = source_path.with_suffix(output_suffix)
     try:
         output = assemble_project_file(source_path, args.format, args.link_dir)
@@ -692,7 +705,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 1
 
     try:
-        output_path.write_text("\n".join(output.split()) + "\n", encoding="ascii")
+        if isinstance(output, bytes):
+            output_path.write_bytes(output)
+        else:
+            output_path.write_text("\n".join(output.split()) + "\n", encoding="ascii")
         print(f"Archivo generado: {output_path}")
         return 0
     except OSError as exc:

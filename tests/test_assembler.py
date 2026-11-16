@@ -16,6 +16,7 @@ class AssemblerTests(unittest.TestCase):
         self.assertEqual(assemble_source(source, "hex"), "3000 1021 F025")
         self.assertEqual(assemble_source(source, "bin").split()[0], "0011000000000000")
         self.assertEqual(assemble_source(source, "dec").split()[0], "12288")
+        self.assertEqual(assemble_source(source, "obj"), bytes.fromhex("30001021F025"))
 
     def test_label_and_fill(self):
         source = ".ORIG x3000\nLD R0 VAR\nBRnzp DONE\nVAR .FILL #7\nDONE HALT\n.END\n"
@@ -53,6 +54,15 @@ class AssemblerTests(unittest.TestCase):
             self.assertEqual(main([str(source_path)]), 0)
             self.assertEqual(output_path.read_text(encoding="ascii"), "3000\nF025\n")
 
+    def test_cli_writes_binary_lc3_object_file(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_path = Path(temp_dir) / "programa.asm"
+            output_path = Path(temp_dir) / "programa.obj"
+            source_path.write_text(".ORIG x3000\nHALT\n.END\n", encoding="utf-8")
+
+            self.assertEqual(main([str(source_path), "--format", "obj"]), 0)
+            self.assertEqual(output_path.read_bytes(), bytes.fromhex("3000F025"))
+
     def test_project_linker_resolves_external_and_includes_module(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)
@@ -76,6 +86,10 @@ class AssemblerTests(unittest.TestCase):
             self.assertEqual(
                 (project / "main.hex").read_text(encoding="ascii").split(),
                 output,
+            )
+            self.assertEqual(
+                assemble_project_file(source_path, "obj"),
+                bytes.fromhex("30003002F0251021C1C0"),
             )
 
     def test_project_linker_resolves_unqualified_external_by_unique_symbol(self):

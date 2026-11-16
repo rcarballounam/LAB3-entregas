@@ -33,7 +33,7 @@ sub_main_menu       .FILL G27_MAIN_MENU_PROGRESO-MAIN_MENU      ; <- *
 main
      AND R0 R0 #0                        ; <- 0 es nullptr (osea mostrar el menu normalmente)
      ;LEA R0 programa_del_menu            ; <- ptr (es para que automaticamente corra el programa de abajo)
-     LEA R0 programa_del_menu_completo   ; <- ptr (es para que automaticamente corra el programa de abajo)
+     ;LEA R0 programa_del_menu_completo   ; <- ptr (es para que automaticamente corra el programa de abajo)
 
     LD R1 sub_main_menu
     JSRR R1

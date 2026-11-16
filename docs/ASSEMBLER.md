@@ -16,7 +16,12 @@ Para elegir otro formato:
 ```powershell
 python src\assembler\assembler.py ruta\al\programa.asm --format bin
 python src\assembler\assembler.py ruta\al\programa.asm --format dec
+python src\assembler\assembler.py ruta\al\programa.asm --format obj
 ```
+
+El formato `obj` genera un archivo binario compatible con simuladores LC-3: la
+primera palabra de 16 bits es la dirección `.ORIG`, seguida por las palabras de
+máquina, todas en orden big-endian.
 
 Las referencias `.EXTERNAL MODULO-SIMBOLO` se enlazan recursivamente con los
 archivos de `lib` junto al fuente. También se admite `.EXTERNAL SIMBOLO` cuando
@@ -29,13 +34,14 @@ por palabra; sus `.ORIG` se ajustan a la base asignada. Un externo sin
 definición única produce un error en lugar de generar una dirección cero.
 
 El nombre de salida conserva el nombre base del assembly y cambia la extensión
-según el formato: `.hex`, `.bin` o `.dec`. Por ejemplo, `programa.asm` genera
-`programa.hex` por defecto. El archivo pone cada valor en una línea (una sola
-columna), con la dirección de origen en la primera línea.
+según el formato: `.hex`, `.bin`, `.dec` o `.obj`. Por ejemplo, `programa.asm`
+genera `programa.hex` por defecto. Los formatos de texto ponen cada valor en
+una línea (una sola columna), con la dirección de origen en la primera línea;
+`.obj` es binario.
 
 La API `assemble_source`, `assemble_file` y `assemble_project_file` devuelve
-el contenido ensamblado como texto; la generación automática del archivo ocurre
-al ejecutar la CLI.
+texto para `hex`, `bin` y `dec`, y bytes para `obj`; la generación automática
+del archivo ocurre al ejecutar la CLI.
 
 La codificación de instrucciones implementada actualmente corresponde al
 subconjunto LC-3; todavía no representa por completo la ISA modificada descrita
