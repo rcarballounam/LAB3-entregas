@@ -25,7 +25,7 @@
     
     ; --- Preparar argumentos para la subrutina ---
     ADD R1, R0, #0       ; R1 = Multiplicador (el segundo número)
-    LD R0, NUM1          ; R0 = Multiplicando (el primer número guardado)
+    LD R0, NUM2          ; R0 = Multiplicando (el primer número guardado)
 
     ; --- Llamar a la subrutina externa ---
     JSR MULT_SUMA        ; El linker resolverá la dirección a x4000
@@ -38,6 +38,7 @@
 MSG1      .STRINGZ "Ingrese el primer numero (0-9): "
 MSG2      .STRINGZ "\nIngrese el segundo numero (0-9): "
 NUM1      .FILL #0
+NUM2      .FILL #0
 RESULTADO .FILL #0       ; Acá quedará el resultado (ej: 4 * 3 = x000C)
 
 .END
