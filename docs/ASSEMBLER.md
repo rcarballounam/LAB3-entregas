@@ -47,6 +47,17 @@ La codificación de instrucciones implementada actualmente corresponde al
 subconjunto LC-3; todavía no representa por completo la ISA modificada descrita
 en `ISA.md`.
 
+## Ejecutar un archivo `.obj`
+
+El simulador funcional ejecuta los objetos generados por este ensamblador:
+
+```powershell
+python "src\simulador funcional\simulador.py" ruta\al\programa.obj
+```
+
+Consulte [SIMULATOR.md](SIMULATOR.md) para los TRAP implementados y las opciones
+de ejecución.
+
 ## Convertir un `.hex` de una fila a una columna
 
 Para convertir un archivo hexadecimal existente sin modificar el original:
